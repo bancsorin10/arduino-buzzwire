@@ -72,7 +72,7 @@ int tempo[] = {
 };
 
 
-int ms = 0, s = 0;
+int ms = 0, s = 0, i = 0, icr; //i < 78
 char digit = 0;
 
 void display(char c, char d)
@@ -143,6 +143,11 @@ void display(char c, char d)
           PORTD &= 0b01111111;
           break ;
       }
+      case '-':
+      {
+          PORTD &= 0b01111111;
+          break ;
+      }
       default: break ;
   }
 
@@ -164,6 +169,7 @@ void display(char c, char d)
 
 ISR(TIMER0_COMPA_vect)
 {
+    
     digit++;
     switch(digit)
     {
@@ -171,6 +177,7 @@ ISR(TIMER0_COMPA_vect)
       case 2: display(1,(s/10)%10); digit = 0; break;
     }
      //not actual milliseconds
+
     if (ms == 1499)
     {
         s++;
@@ -185,6 +192,7 @@ ISR(INT1_vect)
     SREG &= ~(1<<7);
     while (1)
     {
+      // Serial.println("kek");
         display(2, s % 10);
         display(1, s / 10 % 10);
     }
@@ -193,6 +201,15 @@ ISR(INT1_vect)
 ISR(INT0_vect)
 {
     // game over - buzzer 'screams' 
+    SREG &= ~(1<<7);
+    PORTB |= 0b00000010; // turn on buzzer
+
+    while (1)
+    {
+        //scream until reset
+        display(1, '-');
+        display(2, '-');
+    }
 }
 
 void set_int1()
@@ -211,10 +228,6 @@ void set_int0()
 
 void set_timer1()
 {
-    
-    OCR1AL = 0b11011011;
-    OCR1AH = 0b00000101; // 1499 to obtain 1 ms // clock of 12 MHz /8 prescaler / 1499 ocr
-    TCCR1B |= 0b00001000; // ctc mode
     TCCR1A |= 0b01000000; // toggle oc1a on compare match
     TIMSK1 |= 0b00000010; // enable interrup for compare on ocr1a
     TCCR1B |= 0b00000010; // prescaler of 8
@@ -222,6 +235,15 @@ void set_timer1()
     TCCR1B |= 0b00011000; // for fast pwm with icr1 as top
     TCNT1H = 0;
     TCNT1L = 0;
+
+    // set first note
+    icr = (12000000 / melody[i] / 8) - 1;
+    ICR1L = icr;
+    ICR1H = icr >> 8;
+    
+    OCR1AL = icr;
+    OCR1AH = icr >> 8;
+    
 }
 
 void set_timer0()
@@ -234,9 +256,10 @@ void set_timer0()
 }
 
 void setup() {
+
   // put your setup code here, to run once:
   SREG = 1<<7; // global interrupts enable
- // set_timer1();
+//  set_timer1();
   set_timer0();
   set_int1();
   set_int0();
