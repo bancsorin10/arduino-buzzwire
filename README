@@ -1,3 +1,16 @@
 This is an arduino application 
 
-right now a double 7 segment display is setted with a timer 0 for timing actions 
+a buzzwire game 
+
+- a double 7 segment display that shows the time you needed to complete the game
+
+connections described in the dispay.ino right on top
+int 1 is for win connect it at the end of the wire (not to the wire use another wire or a nailed coin)
+both int0 ant int1 pins should be connected with a pull down resistor to prevent anomalies
+
+known issue:
+    tried to make a pwm buzzer to sing the marion song while you are playing but activating timer1 influences timer0 and unexpectedly it remains on 00
+    the problem persists even if you disable the interruption while in timer0 isr
+    sooo the display in timer0 isr works but the values are not incremented and also the pwm works on the first note as i tested
+    
+
