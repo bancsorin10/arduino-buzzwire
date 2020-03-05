@@ -1,4 +1,4 @@
-#Arduino buzzwire game 
+# Arduino buzzwire game 
 
 
 - a double 7 segment display that shows the time you needed to complete the game
